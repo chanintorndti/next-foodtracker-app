@@ -1,28 +1,50 @@
 "use client"
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FaPlus, FaChevronLeft, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import profile from './../images/profile.png';
+import { FaEdit, FaChevronLeft, FaSignOutAlt, FaSave } from 'react-icons/fa';
 
-// Mock Data for a logged-in user
+// Mock Data
+const MOCK_FOOD_DATA = [
+  { id: 1, date: '2025-09-01', imageUrl: 'https://cdn.pixabay.com/photo/2020/06/02/18/10/noodles-5252012_640.jpg', foodName: 'Pork Stir-fry', meal: 'Dinner' },
+  { id: 2, date: '2025-09-01', imageUrl: 'https://cdn.pixabay.com/photo/2020/06/02/18/10/noodles-5252012_640.jpg', foodName: 'Grilled Chicken', meal: 'Lunch' },
+  { id: 3, date: '2025-09-02', imageUrl: 'https://cdn.pixabay.com/photo/2020/06/02/18/10/noodles-5252012_640.jpg', foodName: 'Salad', meal: 'Breakfast' },
+  { id: 4, date: '2025-09-02', imageUrl: 'https://cdn.pixabay.com/photo/2020/06/02/18/10/noodles-5252012_640.jpg', foodName: 'Spaghetti', meal: 'Dinner' },
+  { id: 5, date: '2025-09-03', imageUrl: 'https://cdn.pixabay.com/photo/2020/06/02/18/10/noodles-5252012_640.jpg', foodName: 'Sushi', meal: 'Lunch' },
+];
+
 const MOCK_USER_DATA = {
   fullName: 'John Doe',
-  profileImageUrl: 'https://via.placeholder.com/150/9F2A66/FFFFFF?text=JD',
+  profileImageUrl: 'https://cdn.pixabay.com/photo/2021/07/15/07/50/newborn-6467762_640.jpg',
 };
 
-type MealType = '' | 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
-export default function Page() {
+export default function Page({params}:{params:{id:string}}) {
   const router = useRouter();
+  const { id } = params;
   const user = MOCK_USER_DATA;
+
   const [foodName, setFoodName] = useState('');
-  const [mealType, setMealType] = useState<MealType>('');
+  const [mealType, setMealType] = useState<MealType>('Breakfast');
   const [date, setDate] = useState('');
   const [foodImage, setFoodImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (id) {
+      // In a real app, this would be an API call to fetch data by ID
+      const foodItem = MOCK_FOOD_DATA.find(item => item.id.toString() === id);
+      if (foodItem) {
+        setFoodName(foodItem.foodName);
+        setMealType(foodItem.meal as MealType);
+        setDate(foodItem.date);
+        setFoodImage(foodItem.imageUrl);
+      }
+    }
+  }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,33 +63,30 @@ export default function Page() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real application, you would send this data to an API
-    const newFoodItem = {
+    const updatedFoodItem = {
+      id: id,
       foodName,
       mealType,
       date,
       foodImage,
     };
-    console.log('Saving food item:', newFoodItem);
+    console.log('Saving updated food item:', updatedFoodItem);
 
-    // Redirect to dashboard after saving
     router.push('/dashboard');
   };
 
   const handleLogout = () => {
     console.log("User logged out");
-    // In a real app, you would clear auth token and redirect to login page
     router.push('/login');
   };
 
   return (
     <>
       <div className="min-h-screen bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 flex flex-col items-center p-4 relative">
-        {/* User Profile and Logout */}
         <div className="absolute top-6 right-6 flex items-center space-x-4">
           <Link href="/profile" className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors duration-300">
             <Image
-              src={profile}
+              src={user.profileImageUrl}
               alt={user.fullName}
               width={40}
               height={40}
@@ -84,7 +103,6 @@ export default function Page() {
           </button>
         </div>
 
-        {/* Back to Dashboard Link */}
         <Link href="/dashboard" className="absolute top-6 left-6 text-white hover:text-gray-200 transition-colors duration-300 hidden sm:flex items-center gap-2">
           <FaChevronLeft className="text-xl" />
           <span className="font-medium">Back to Dashboard</span>
@@ -92,8 +110,8 @@ export default function Page() {
 
         <div className="bg-white bg-opacity-90 p-8 rounded-xl shadow-2xl w-full max-w-lg backdrop-blur-sm mt-12 mb-8">
           <div className="flex flex-col items-center mb-6">
-            <FaPlus className="text-5xl text-indigo-600 mb-2" />
-            <h1 className="text-3xl font-bold text-gray-900">Add a New Food Item</h1>
+            <FaEdit className="text-5xl text-indigo-600 mb-2" />
+            <h1 className="text-3xl font-bold text-gray-900">Edit Food Item</h1>
           </div>
 
           <form onSubmit={handleSave} className="space-y-4">
@@ -106,7 +124,6 @@ export default function Page() {
                 value={foodName}
                 onChange={(e) => setFoodName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" 
-                placeholder="e.g., Grilled Chicken" 
                 required
               />
             </div>
@@ -121,7 +138,6 @@ export default function Page() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                 required
               >
-                <option value="">Select a meal type</option>
                 <option value="Breakfast">Breakfast</option>
                 <option value="Lunch">Lunch</option>
                 <option value="Dinner">Dinner</option>
@@ -174,8 +190,8 @@ export default function Page() {
               type="submit" 
               className="w-full px-4 py-3 bg-indigo-600 text-white font-bold rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
             >
-              <FaPlus />
-              Save
+              <FaSave />
+              Save Changes
             </button>
           </form>
         </div>
