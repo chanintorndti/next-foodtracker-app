@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,9 +22,9 @@ const MOCK_USER_DATA = {
 
 type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
 
-export default function Page({params}:{params:{id:string}}) {
+export default function Page({params}:{params:Promise<{id:string}>}) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
   const user = MOCK_USER_DATA;
 
   const [foodName, setFoodName] = useState('');
